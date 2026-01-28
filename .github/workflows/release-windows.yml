@@ -1,0 +1,52 @@
+name: Build and Release Windows
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # e.g. v1.2.3, v1.2.3-alpha
+
+jobs:
+  build-release-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Windows executable
+        run: flutter build windows --release
+
+      - name: Extract version from pubspec.yaml
+        id: extract_version
+        run: |
+          $version = (Get-Content pubspec.yaml | Where-Object { $_ -match 'version:' } | ForEach-Object { ($_.Split(' ')[1]).Split('+')[0] })
+          echo "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: powershell
+
+      - name: Install Inno Setup
+        uses: crazy-max/ghaction-chocolatey@v3
+        with:
+          args: install innosetup
+
+      - name: Create Windows Installer
+        run: iscc.exe "windows/installer.iss" /DAppVersion=${{ env.APP_VERSION }}
+
+      - name: Create Release and Upload Artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          files: installers/*.exe
+          # The release body will be automatically populated from the git tag annotation.
+          # For example: git tag -a v1.0.0 -m "Release notes for v1.0.0"
