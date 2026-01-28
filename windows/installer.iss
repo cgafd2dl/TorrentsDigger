@@ -8,7 +8,7 @@
 #define MyAppName "Torrents Digger"
 #define MyAppPublisher "ForTheCommunity"
 ; The README links to GitLab, you may want to update this if your project is on GitHub
-#define MyAppURL "https://github.com/YOUR_USERNAME/YOUR_REPOSITORY"
+#define MyAppURL "https://gitlab.com/ForTheCommunity/torrentsdigger"
 #define MyAppExeName "torrents_digger.exe"
 
 [Setup]
